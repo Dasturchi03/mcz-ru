@@ -2,6 +2,7 @@ import asyncio
 import requests
 import openpyxl
 import pyppeteer
+import threading
 import json
 import sys
 import logging
@@ -130,13 +131,20 @@ def bot_send_file(message: Message):
         URLS = dc['urls']
         titles = dc['titles']
     
+    async def async_wrapper(url, sheet):
+        result = await main(url, sheet)
+        loop.stop()
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     for i in range(len(URLS)):
         sheet = workbook.create_sheet(titles[i], i+1)
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(main(URLS[i], sheet))
-        loop.close()
-        workbook.save('mc_ru_data.xlsx')
+        
+        threading.Thread(target=async_wrapper, kwargs={'url':URLS[i], 'sheet': sheet}).start()
+        # loop.run_until_complete(main(URLS[i], sheet))
+    workbook.save('mc_ru_data.xlsx')
+    loop.run_forever()
+    loop.close()
     bot.delete_message(chat_id, mess.message_id)
     with open('mc_ru_data.xlsx', 'rb', encoding='utf-8') as file:
         bot.send_document(chat_id, file)
