@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag, NavigableString
 from pyppeteer import launch
 from telebot import TeleBot
-from telebot.types import Message, InputFile
+from telebot.types import Message
 
 logging.basicConfig(
     level=logging.INFO,
@@ -135,7 +135,8 @@ async def bot_send_file(message: Message):
         asyncio.run(main(URLS[i], sheet))
     workbook.save('mc_ru_data.xlsx')
     bot.delete_message(chat_id, mess.message_id)
-    bot.send_document(chat_id, InputFile('mc_ru_data.xlsx'))
+    with open('mc_ru_data.xlsx', 'rb', encoding='utf-8') as file:
+        bot.send_document(chat_id, file)
 
 
 if __name__ == '__main__':
