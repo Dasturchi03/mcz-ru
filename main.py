@@ -117,7 +117,7 @@ def start_bot(message: Message):
 
 
 @bot.message_handler(commands=['file'])
-async def bot_send_file(message: Message):
+def bot_send_file(message: Message):
     chat_id = message.chat.id
     mess = bot.reply_to(message, 'Сбор данных...')
 
