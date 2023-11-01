@@ -8,9 +8,8 @@ import logging
 from bs4 import BeautifulSoup
 from bs4.element import Tag, NavigableString
 from pyppeteer import launch
-from aiogram import Bot, Dispatcher, executor
-from aiogram.types import Message, InputFile
-
+from telebot import TeleBot
+from telebot.types import Message, InputFile
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,9 +22,7 @@ logger = logging.getLogger(__name__)
 
 TOKEN = "6868186294:AAG2cIa6nyijkUDuLBIY8RlWanjI9-4_N1E"
 
-bot = Bot(TOKEN)
-dp = Dispatcher(bot)
-
+bot = TeleBot(TOKEN)
 
 
 async def main(url, sheet):
@@ -112,17 +109,17 @@ async def _evaluate(page, retries=0):
              return await _evaluate(page, retries+1)
 
 
-@dp.message_handler(commands=['start'])
-async def start_bot(message: Message):
+@bot.message_handler(commands=['start'])
+def start_bot(message: Message):
     chat_id = message.chat.id
-    await bot.send_message(chat_id, 'Привествие 👋')
-    await bot.send_message(chat_id, 'Используйте команду /file, чтобы получить файл')
+    bot.send_message(chat_id, 'Привествие 👋')
+    bot.send_message(chat_id, 'Используйте команду /file, чтобы получить файл')
 
 
-@dp.message_handler(commands=['file'])
+@bot.message_handler(commands=['file'])
 async def bot_send_file(message: Message):
     chat_id = message.chat.id
-    mess = await message.reply('Сбор данных...')
+    mess = bot.reply_to(message, 'Сбор данных...')
 
     workbook = openpyxl.Workbook()
     URLS = []
@@ -135,11 +132,11 @@ async def bot_send_file(message: Message):
     
     for i in range(len(URLS)):
         sheet = workbook.create_sheet(titles[i], i+1)
-        await main(URLS[i], sheet)
+        asyncio.run(main(URLS[i], sheet))
     workbook.save('mc_ru_data.xlsx')
-    await mess.delete()
-    await bot.send_document(chat_id, InputFile('mc_ru_data.xlsx'))
+    bot.delete_message(chat_id, mess.message_id)
+    bot.send_document(chat_id, InputFile('mc_ru_data.xlsx'))
 
 
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    bot.infinity_polling()
