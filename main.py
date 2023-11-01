@@ -136,7 +136,7 @@ async def bot_send_file(message: Message):
         workbook.save('mc_ru_data.xlsx')
     bot.delete_message(chat_id, mess.message_id)
     with open('mc_ru_data.xlsx', 'rb', encoding='utf-8') as file:
-        bot.send_document(chat_id, file)
+        await bot.send_document(chat_id, file)
 
 
 if __name__ == '__main__':
