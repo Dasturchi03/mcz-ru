@@ -132,7 +132,7 @@ def bot_send_file(message: Message):
     
     for i in range(len(URLS)):
         sheet = workbook.create_sheet(titles[i], i+1)
-        asyncio.run(main(URLS[i], sheet))
+        asyncio.get_event_loop().run_until_complete(main(URLS[i], sheet))
     workbook.save('mc_ru_data.xlsx')
     bot.delete_message(chat_id, mess.message_id)
     with open('mc_ru_data.xlsx', 'rb', encoding='utf-8') as file:
