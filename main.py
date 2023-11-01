@@ -8,7 +8,7 @@ import logging
 from bs4 import BeautifulSoup
 from bs4.element import Tag, NavigableString
 from pyppeteer import launch
-from telebot import TeleBot
+from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
 logging.basicConfig(
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 TOKEN = "6868186294:AAG2cIa6nyijkUDuLBIY8RlWanjI9-4_N1E"
 
-bot = TeleBot(TOKEN)
+bot = AsyncTeleBot(TOKEN)
 
 
 async def main(url, sheet):
@@ -110,16 +110,16 @@ async def _evaluate(page, retries=0):
 
 
 @bot.message_handler(commands=['start'])
-def start_bot(message: Message):
+async def start_bot(message: Message):
     chat_id = message.chat.id
-    bot.send_message(chat_id, 'Привествие 👋')
-    bot.send_message(chat_id, 'Используйте команду /file, чтобы получить файл')
+    await bot.send_message(chat_id, 'Привествие 👋')
+    await bot.send_message(chat_id, 'Используйте команду /file, чтобы получить файл')
 
 
 @bot.message_handler(commands=['file'])
 async def bot_send_file(message: Message):
     chat_id = message.chat.id
-    mess = bot.reply_to(message, 'Сбор данных...')
+    mess = await bot.reply_to(message, 'Сбор данных...')
 
     workbook = openpyxl.Workbook()
     URLS = []
