@@ -8,7 +8,7 @@ import logging
 from bs4 import BeautifulSoup
 from bs4.element import Tag, NavigableString
 from pyppeteer import launch
-from telebot.async_telebot import AsyncTeleBot
+from telebot import TeleBot
 from telebot.types import Message
 
 logging.basicConfig(
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 TOKEN = "6868186294:AAG2cIa6nyijkUDuLBIY8RlWanjI9-4_N1E"
 
-bot = AsyncTeleBot(TOKEN)
+bot = TeleBot(TOKEN)
 
 
 async def main(url, sheet):
@@ -110,16 +110,16 @@ async def _evaluate(page, retries=0):
 
 
 @bot.message_handler(commands=['start'])
-async def start_bot(message: Message):
+def start_bot(message: Message):
     chat_id = message.chat.id
-    await bot.send_message(chat_id, 'Привествие 👋')
-    await bot.send_message(chat_id, 'Используйте команду /file, чтобы получить файл')
+    bot.send_message(chat_id, 'Привествие 👋')
+    bot.send_message(chat_id, 'Используйте команду /file, чтобы получить файл')
 
 
 @bot.message_handler(commands=['file'])
-async def bot_send_file(message: Message):
+def bot_send_file(message: Message):
     chat_id = message.chat.id
-    mess = await bot.reply_to(message, 'Сбор данных...')
+    mess = bot.reply_to(message, 'Сбор данных...')
 
     workbook = openpyxl.Workbook()
     URLS = []
@@ -132,11 +132,14 @@ async def bot_send_file(message: Message):
     
     for i in range(len(URLS)):
         sheet = workbook.create_sheet(titles[i], i+1)
-        await main(URLS[i], sheet)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(main(URLS[i], sheet))
+        loop.close()
         workbook.save('mc_ru_data.xlsx')
     bot.delete_message(chat_id, mess.message_id)
     with open('mc_ru_data.xlsx', 'rb', encoding='utf-8') as file:
-        await bot.send_document(chat_id, file)
+        bot.send_document(chat_id, file)
 
 
 if __name__ == '__main__':
